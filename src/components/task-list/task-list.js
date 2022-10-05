@@ -4,7 +4,7 @@ import Task from '../task';
 
 /* eslint-disable react/jsx-props-no-spreading */
 
-function TaskList({ items, onDelete, onDone, onEdit, onValueChange }) {
+function TaskList({ items, onDelete, onDone, onEdit, onValueChange, onPause, onPlay }) {
   const elements = items.map((item) => {
     const { id, edit, ...itemProps } = item;
     const classNameEdit = edit ? 'editing' : 'completed';
@@ -16,6 +16,8 @@ function TaskList({ items, onDelete, onDone, onEdit, onValueChange }) {
           onDelete={() => onDelete(id)}
           onDone={() => onDone(id)}
           onEdit={() => onEdit(id)}
+          onPlay={() => onPlay(id)}
+          onPause={() => onPause(id)}
           onValueChange={onValueChange}
         />
       </li>

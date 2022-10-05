@@ -10,15 +10,19 @@ export default class App extends Component {
     super(props);
     this.state = {
       items: [
-        { id: 1, label: 'Drink Coffee', done: false, edit: false, timeCreate: new Date() },
-        { id: 2, label: 'Learn React', done: false, edit: false, timeCreate: new Date() },
-        { id: 3, label: 'Make Awesome App', done: false, edit: false, timeCreate: new Date() },
+        { id: 1, label: 'Drink Coffee', done: false, edit: false, timeCreate: new Date(), timerMin: 1, timerSec: 20, timer: null},
+        { id: 2, label: 'Learn React', done: false, edit: false, timeCreate: new Date(), timerMin: 1, timerSec: 30, timer: null},
+        { id: 3, label: 'Make Awesome App', done: false, edit: false, timeCreate: new Date(), timerMin: 1, timerSec: 30, timer: null},
       ],
       filter: 'all',
     };
+
     this.maxId = 100;
     this.onDone.bind(this);
     this.onEdit.bind(this);
+    this.onPlay.bind(this);
+    this.countDown.bind(this);
+
   }
 
   onDelete = (id) => {
@@ -29,9 +33,9 @@ export default class App extends Component {
     });
   };
 
-  onAdd = (label) => {
+  onAdd = (label, timerMin, timerSec) => {
     const idCount = this.maxId + 1;
-    const newItem = { id: idCount, label, done: false, edit: false, timeCreate: new Date() };
+    const newItem = { id: idCount, label, done: false, edit: false, timeCreate: new Date(), timerMin: Number(timerMin), timerSec: Number(timerSec), timer: null, duration: 0};
     this.setState((state) => {
       const newState = [...state.items, newItem];
       return { items: newState };
@@ -92,6 +96,36 @@ export default class App extends Component {
     });
   };
 
+  onPlay = (id) => {
+    const idx = this.state.items.findIndex((item) => item.id === id);
+    const item = this.state.items[idx];
+    window.localStorage.setItem(id, JSON.stringify(item.timerMin*60 + item.timerSec));
+    if (item.timer === null && JSON.parse(window.localStorage.getItem(id)) > 0) {
+      item.timer = setInterval(() => this.countDown(idx, id), 1000);
+    }
+  }
+
+  countDown(idx, id) {
+    let seconds = JSON.parse(window.localStorage.getItem(id)) - 1;// this.state.items[idx].timerMin*60 + this.state.items[idx].timerSec - 1;
+    let newItem = {...this.state.items[idx], timerMin: Math.floor(seconds/60), timerSec: seconds%60};
+    if (seconds < 0) {
+      clearInterval(this.state.items[idx].timer);
+      newItem = {...this.state.items[idx], timer: null};
+    }
+    window.localStorage.setItem(id, JSON.stringify(seconds));
+    this.setState({ items: [...this.state.items.slice(0, idx), newItem, ...this.state.items.slice(idx + 1)] });
+  }
+
+  onPause = (id) => {
+    const idx = this.state.items.findIndex((item) => item.id === id);
+    const item = this.state.items[idx];
+    const newItem = {...this.state.items[idx], timer: null };
+    this.setState(() => {
+      clearInterval(item.timer);
+      return { items: [...this.state.items.slice(0, idx), newItem, ...this.state.items.slice(idx + 1)] };
+    });
+  }
+
   render() {
     const { items, filter } = this.state;
     const doneCount = items.filter((item) => item.done).length;
@@ -106,6 +140,8 @@ export default class App extends Component {
           onDelete={this.onDelete}
           onDone={this.onDone}
           onEdit={this.onEdit}
+          onPlay={this.onPlay}
+          onPause={this.onPause}
         />
         <Footer
           items={items}

@@ -17,7 +17,7 @@ export default class TaskItem extends Component {
 
   onSetTimeDistance = () => {
     const propsValue = this.props;
-    this.setState({ seconds: formatDistanceToNow(propsValue.timeCreate, { addSuffix: true, includeSeconds: true }) });
+    this.setState({ seconds: formatDistanceToNow(propsValue.timeCreate, { addSuffix: false}) });
   };
 
   onSubmit = (e) => {
@@ -34,17 +34,20 @@ export default class TaskItem extends Component {
   render() {
     const propsItem = this.props;
     const stateValue = this.state;
-    const classNames = propsItem.done ? 'selected through' : 'selected';
+    const classNames = propsItem.done ? 'title through' : 'title';
     const classNameCheckbox = propsItem.done ? 'toggle checked' : 'toggle';
-    // const secondsShow = stateValue.seconds > 60 ? 'minutes ago' : 'seconds ago';
-    // const count = stateValue.seconds > 60 ? Math.floor(stateValue.seconds / 60) : stateValue.seconds;
     return (
       <>
         <div className="view">
           <input className={classNameCheckbox} type="checkbox" onChange={propsItem.onDone} />
           <label htmlFor={propsItem.label}>
             <span className={classNames}>{propsItem.label}</span>
-            <span className="created"> created {stateValue.seconds} </span>
+            <span className="description">
+              <button className="icon icon-play" onClick={propsItem.onPlay} ></button>
+              <button className="icon icon-pause" onClick={propsItem.onPause}></button>
+              " {propsItem.timerMin}:{propsItem.timerSec}
+            </span>
+            <span className="description"> created {stateValue.seconds} </span>
           </label>
           <button type="button" aria-label="edit" className="icon icon-edit" onClick={propsItem.onEdit} />
           <button type="button" aria-label="destroy" className="icon icon-destroy" onClick={propsItem.onDelete} />
