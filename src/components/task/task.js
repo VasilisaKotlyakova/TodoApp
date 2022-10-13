@@ -17,7 +17,9 @@ export default class TaskItem extends Component {
 
   onSetTimeDistance = () => {
     const propsValue = this.props;
-    this.setState({ seconds: formatDistanceToNow(propsValue.timeCreate, { addSuffix: true, includeSeconds: true }) });
+    this.setState({
+      seconds: formatDistanceToNow(new Date(propsValue.timeCreate), { addSuffix: true, includeSeconds: true }),
+    });
   };
 
   onSubmit = (e) => {
@@ -36,8 +38,7 @@ export default class TaskItem extends Component {
     const stateValue = this.state;
     const classNames = propsItem.done ? 'selected through' : 'selected';
     const classNameCheckbox = propsItem.done ? 'toggle checked' : 'toggle';
-    // const secondsShow = stateValue.seconds > 60 ? 'minutes ago' : 'seconds ago';
-    // const count = stateValue.seconds > 60 ? Math.floor(stateValue.seconds / 60) : stateValue.seconds;
+
     return (
       <>
         <div className="view">

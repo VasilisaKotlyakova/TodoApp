@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import './app.css';
 import NewTaskForm from '../new-task-form';
@@ -9,54 +10,63 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: [
-        { id: 1, label: 'Drink Coffee', done: false, edit: false, timeCreate: new Date() },
-        { id: 2, label: 'Learn React', done: false, edit: false, timeCreate: new Date() },
-        { id: 3, label: 'Make Awesome App', done: false, edit: false, timeCreate: new Date() },
-      ],
+      todos: [],
       filter: 'all',
     };
-    this.maxId = 100;
     this.onDone.bind(this);
     this.onEdit.bind(this);
   }
 
+  componentDidMount() {
+    this.setState({ todos: JSON.parse(window.localStorage.getItem('todos')) });
+  }
+
   onDelete = (id) => {
     this.setState((state) => {
-      const idx = state.items.findIndex((el) => el.id === id);
-      const items = [...state.items.slice(0, idx), ...state.items.slice(idx + 1)];
-      return { items };
+      const idx = state.todos.findIndex((el) => el.id === id);
+      const todos = [...state.todos.slice(0, idx), ...state.todos.slice(idx + 1)];
+      window.localStorage.setItem('todos', JSON.stringify(todos));
+      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
     });
   };
 
   onAdd = (label) => {
-    const idCount = this.maxId + 1;
-    const newItem = { id: idCount, label, done: false, edit: false, timeCreate: new Date() };
+    const idCount = uuidv4();
+    const newItem = { id: idCount, label: label.trim(), done: false, edit: false, timeCreate: new Date() };
     this.setState((state) => {
-      const newState = [...state.items, newItem];
-      return { items: newState };
+      const newState = state.todos === null ? [newItem] : [...state.todos, newItem];
+      if (!label.trim()) {
+        window.localStorage.setItem('todos', JSON.stringify([...state.todos]));
+        return { todos: JSON.parse(window.localStorage.getItem('todos')) };
+      }
+      window.localStorage.setItem('todos', JSON.stringify(newState));
+      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
     });
   };
 
   onDone = (id) => {
     this.setState((state) => {
-      const idx = state.items.findIndex((item) => item.id === id);
-      const oldItem = state.items[idx];
+      const idx = state.todos.findIndex((item) => item.id === id);
+      const oldItem = state.todos[idx];
       const value = !oldItem.done;
 
-      const item = { ...state.items[idx], done: value };
-      return { items: [...state.items.slice(0, idx), item, ...state.items.slice(idx + 1)] };
+      const item = { ...state.todos[idx], done: value };
+      return { todos: [...state.todos.slice(0, idx), item, ...state.todos.slice(idx + 1)] };
     });
   };
 
   onEdit = (id) => {
     this.setState((state) => {
-      const idx = state.items.findIndex((item) => item.id === id);
-      const oldItem = state.items[idx];
+      const idx = state.todos.findIndex((item) => item.id === id);
+      const oldItem = state.todos[idx];
       const value = !oldItem.edit;
 
-      const item = { ...state.items[idx], edit: value };
-      return { items: [...state.items.slice(0, idx), item, ...state.items.slice(idx + 1)] };
+      const item = { ...state.todos[idx], edit: value };
+      window.localStorage.setItem(
+        'todos',
+        JSON.stringify([...state.todos.slice(0, idx), item, ...state.todos.slice(idx + 1)])
+      );
+      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
     });
   };
 
@@ -66,49 +76,54 @@ export default class App extends Component {
 
   onValueChange = (label, id) => {
     this.setState((state) => {
-      const idx = state.items.findIndex((item) => item.id === id);
-      const item = { ...state.items[idx], label, edit: false };
-      return { items: [...state.items.slice(0, idx), item, ...state.items.slice(idx + 1)] };
+      const idx = state.todos.findIndex((item) => item.id === id);
+      const item = { ...state.todos[idx], label, edit: false };
+      window.localStorage.setItem(
+        'todos',
+        JSON.stringify([...state.todos.slice(0, idx), item, ...state.todos.slice(idx + 1)])
+      );
+      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
     });
   };
 
-  onFilter(items, filter) {
+  onFilter(todos, filter) {
     if (filter === 'all') {
-      return items;
+      return todos;
     }
     if (filter === 'active') {
-      return items.filter((item) => !item.done);
+      return todos.filter((item) => !item.done);
     }
     if (filter === 'completed') {
-      return items.filter((item) => item.done);
+      return todos.filter((item) => item.done);
     }
-    return this.items;
+    return this.todos;
   }
 
   onClearCompleted = () => {
     this.setState((state) => {
-      const newItems = state.items.filter((item) => !item.done);
-      return { items: newItems };
+      const newItems = state.todos.filter((item) => !item.done);
+      window.localStorage.setItem('todos', JSON.stringify(newItems));
+      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
     });
   };
 
   render() {
-    const { items, filter } = this.state;
-    const doneCount = items.filter((item) => item.done).length;
-    const toDoCount = items.length - doneCount;
-    const visibleItems = this.onFilter(items, filter);
+    const { todos, filter } = this.state;
+    const doneCount = todos ? todos.filter((item) => item.done).length : 0;
+    const toDoCount = todos ? todos.length - doneCount : 0;
+    const visibleItems = this.onFilter(todos, filter);
     return (
       <>
         <NewTaskForm onAdd={this.onAdd} />
         <TaskList
-          items={visibleItems}
+          todos={visibleItems}
           onValueChange={this.onValueChange}
           onDelete={this.onDelete}
           onDone={this.onDone}
           onEdit={this.onEdit}
         />
         <Footer
-          items={items}
+          todos={todos}
           filter={filter}
           onFilterChange={this.onFilterChange}
           toDo={toDoCount}
