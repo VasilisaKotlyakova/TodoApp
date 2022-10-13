@@ -1,4 +1,3 @@
-# Vercel version
 
 https://todo-app-virid-two.vercel.app
 
