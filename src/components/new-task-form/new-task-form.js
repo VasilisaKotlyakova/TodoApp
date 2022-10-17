@@ -11,12 +11,7 @@ export default class NewTaskForm extends Component {
         timerSec: '',
     };
     this.onKeyPress = this.onKeyPress.bind(this);
-    this.onSetValue = this.onSetValue.bind(this);
   }
-
-  onSetValue = (name, e) => {
-    this.setState({ name: e.target.value });
-  };
 
   onKeyPress = (e) => {
       const stateValue = this.state;
@@ -41,8 +36,8 @@ export default class NewTaskForm extends Component {
                 onChange={(e) => this.setState({ label: e.target.value })}
                 onKeyPress={this.onKeyPress}
             />
-            <input className="new-todo-form__timer" onChange={(e) => this.setState({ timerMin: e.target.value })} value={stateValue.timerMin} placeholder="Min" onKeyPress={this.onKeyPress} />
-            <input className="new-todo-form__timer" placeholder="Sec" onChange={(e) => this.setState({ timerSec: e.target.value })} value={stateValue.timerSec} onKeyPress={this.onKeyPress} />
+            <input className="new-todo-form__timer" onChange={(e) => this.setState({ timerMin: e.target.value.replace(/\D/g,'') })} value={stateValue.timerMin} placeholder="Min" onKeyPress={this.onKeyPress} />
+            <input className="new-todo-form__timer" placeholder="Sec" onChange={(e) => this.setState({ timerSec: e.target.value.replace(/\D/g,'') })} value={stateValue.timerSec} onKeyPress={this.onKeyPress} />
           </form>
     );
   }

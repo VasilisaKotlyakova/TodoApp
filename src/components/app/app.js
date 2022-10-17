@@ -38,6 +38,9 @@ export default class App extends Component {
     const newItem = { id: idCount, label, done: false, edit: false, timeCreate: new Date(), timerMin: Number(timerMin), timerSec: Number(timerSec), timer: null, duration: 0};
     this.setState((state) => {
       const newState = [...state.items, newItem];
+      if (!label.trim()) {
+        return { state };
+      }
       return { items: newState };
     });
   };
