@@ -1,6 +1,6 @@
 # Project
 
-https://todo-app-timer.vercel.app
+https://todo-timer-tau.vercel.app
 
 # Getting Started with Create React App
 
