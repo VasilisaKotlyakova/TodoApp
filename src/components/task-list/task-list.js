@@ -5,10 +5,15 @@ import Task from '../task';
 /* eslint-disable react/jsx-props-no-spreading */
 
 function TaskList({ todos, onDelete, onDone, onEdit, onValueChange }) {
-  if (todos.length === 0) {
+  let isEmpty;
+  if (todos) {
+    isEmpty = todos.length === 0;
+  }
+
+  if (todos == null) {
     return <ul className=" selected"> Задач нет </ul>;
   }
-  if (todos) {
+  if (!!todos && !isEmpty) {
     const elements = todos.map((item) => {
       const { id, edit, ...itemProps } = item;
       const classNameEdit = edit ? 'editing' : 'completed';
@@ -27,6 +32,7 @@ function TaskList({ todos, onDelete, onDone, onEdit, onValueChange }) {
     });
     return <ul className="todo-list"> {elements} </ul>;
   }
+  return <ul className=" selected"> Задач нет </ul>;
 }
 
 export default TaskList;

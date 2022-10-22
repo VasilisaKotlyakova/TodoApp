@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import './app.css';
@@ -6,130 +6,100 @@ import NewTaskForm from '../new-task-form';
 import Footer from '../footer';
 import TaskList from '../task-list';
 
-export default class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      todos: [],
-      filter: 'all',
-    };
-    this.onDone.bind(this);
-    this.onEdit.bind(this);
-  }
+export default function App() {
+  const [todos, setTodos] = useState(() => JSON.parse(window.localStorage.getItem('todos')));
 
-  componentDidMount() {
-    this.setState({ todos: JSON.parse(window.localStorage.getItem('todos')) });
-  }
+  const [filter, setFilter] = useState('all');
 
-  onDelete = (id) => {
-    this.setState((state) => {
-      const idx = state.todos.findIndex((el) => el.id === id);
-      const todos = [...state.todos.slice(0, idx), ...state.todos.slice(idx + 1)];
-      window.localStorage.setItem('todos', JSON.stringify(todos));
-      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
-    });
+  const onDelete = (id) => {
+    const idx = todos.findIndex((el) => el.id === id);
+    const newTodos = [...todos.slice(0, idx), ...todos.slice(idx + 1)];
+    window.localStorage.setItem('todos', JSON.stringify(newTodos));
+    setTodos(JSON.parse(window.localStorage.getItem('todos')));
   };
 
-  onAdd = (label) => {
+  const onAdd = (label) => {
     const idCount = uuidv4();
-    const newItem = { id: idCount, label: label.trim(), done: false, edit: false, timeCreate: new Date() };
-    this.setState((state) => {
-      const newState = state.todos === null ? [newItem] : [...state.todos, newItem];
-      if (!label.trim()) {
-        window.localStorage.setItem('todos', JSON.stringify([...state.todos]));
-        return { todos: JSON.parse(window.localStorage.getItem('todos')) };
-      }
-      window.localStorage.setItem('todos', JSON.stringify(newState));
+    const newItem = { id: idCount, label, done: false, edit: false, timeCreate: new Date() };
+    const newState = todos === null ? [newItem] : [...todos, newItem];
+    if (!label.trim()) {
+      window.localStorage.setItem('todos', JSON.stringify([...todos]));
       return { todos: JSON.parse(window.localStorage.getItem('todos')) };
-    });
-  };
-
-  onDone = (id) => {
-    this.setState((state) => {
-      const idx = state.todos.findIndex((item) => item.id === id);
-      const oldItem = state.todos[idx];
-      const value = !oldItem.done;
-
-      const item = { ...state.todos[idx], done: value };
-      return { todos: [...state.todos.slice(0, idx), item, ...state.todos.slice(idx + 1)] };
-    });
-  };
-
-  onEdit = (id) => {
-    this.setState((state) => {
-      const idx = state.todos.findIndex((item) => item.id === id);
-      const oldItem = state.todos[idx];
-      const value = !oldItem.edit;
-
-      const item = { ...state.todos[idx], edit: value };
-      window.localStorage.setItem(
-        'todos',
-        JSON.stringify([...state.todos.slice(0, idx), item, ...state.todos.slice(idx + 1)])
-      );
-      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
-    });
-  };
-
-  onFilterChange = (filter) => {
-    this.setState({ filter });
-  };
-
-  onValueChange = (label, id) => {
-    this.setState((state) => {
-      const idx = state.todos.findIndex((item) => item.id === id);
-      const item = { ...state.todos[idx], label, edit: false };
-      window.localStorage.setItem(
-        'todos',
-        JSON.stringify([...state.todos.slice(0, idx), item, ...state.todos.slice(idx + 1)])
-      );
-      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
-    });
-  };
-
-  onFilter(todos, filter) {
-    if (filter === 'all') {
-      return todos;
     }
-    if (filter === 'active') {
-      return todos.filter((item) => !item.done);
-    }
-    if (filter === 'completed') {
-      return todos.filter((item) => item.done);
-    }
-    return this.todos;
-  }
-
-  onClearCompleted = () => {
-    this.setState((state) => {
-      const newItems = state.todos.filter((item) => !item.done);
-      window.localStorage.setItem('todos', JSON.stringify(newItems));
-      return { todos: JSON.parse(window.localStorage.getItem('todos')) };
-    });
+    window.localStorage.setItem('todos', JSON.stringify(newState));
+    setTodos(JSON.parse(window.localStorage.getItem('todos')));
+    return true;
   };
 
-  render() {
-    const { todos, filter } = this.state;
-    const doneCount = todos ? todos.filter((item) => item.done).length : 0;
-    const toDoCount = todos ? todos.length - doneCount : 0;
-    const visibleItems = this.onFilter(todos, filter);
-    return (
-      <>
-        <NewTaskForm onAdd={this.onAdd} />
-        <TaskList
-          todos={visibleItems}
-          onValueChange={this.onValueChange}
-          onDelete={this.onDelete}
-          onDone={this.onDone}
-          onEdit={this.onEdit}
-        />
-        <Footer
-          todos={todos}
-          filter={filter}
-          onFilterChange={this.onFilterChange}
-          toDo={toDoCount}
-          onClearCompleted={this.onClearCompleted}
-        />
-      </>
-    );
-  }
+  const onDone = (id) => {
+    const idx = todos.findIndex((item) => item.id === id);
+    const oldItem = todos[idx];
+    const value = !oldItem.done;
+
+    const item = { ...todos[idx], done: value };
+    setTodos([...todos.slice(0, idx), item, ...todos.slice(idx + 1)]);
+  };
+
+  const onEdit = (id) => {
+    const idx = todos.findIndex((item) => item.id === id);
+    const oldItem = todos[idx];
+    const value = !oldItem.edit;
+
+    const item = { ...todos[idx], edit: value };
+    window.localStorage.setItem('todos', JSON.stringify([...todos.slice(0, idx), item, ...todos.slice(idx + 1)]));
+    setTodos(JSON.parse(window.localStorage.getItem('todos')));
+  };
+
+  const onFilterChange = (filterValue) => {
+    setFilter(filterValue);
+  };
+
+  const onValueChange = (label, id) => {
+    const idx = todos.findIndex((item) => item.id === id);
+    const item = { ...todos[idx], label, edit: false };
+    window.localStorage.setItem('todos', JSON.stringify([...todos.slice(0, idx), item, ...todos.slice(idx + 1)]));
+    setTodos(JSON.parse(window.localStorage.getItem('todos')));
+  };
+
+  const onFilter = (itemsValue, filterValue) => {
+    if (filterValue === 'all') {
+      return itemsValue;
+    }
+    if (filterValue === 'active') {
+      return itemsValue.filter((item) => !item.done);
+    }
+    if (filterValue === 'completed') {
+      return itemsValue.filter((item) => item.done);
+    }
+    return itemsValue;
+  };
+
+  const onClearCompleted = () => {
+    const newItems = todos.filter((item) => !item.done);
+    window.localStorage.setItem('todos', JSON.stringify(newItems));
+    setTodos(JSON.parse(window.localStorage.getItem('todos')));
+  };
+
+  const doneCount = todos !== null ? todos.filter((item) => item.done).length : 0;
+  const toDoCount = todos !== null ? todos.length - doneCount : 0;
+  const visibleItems = onFilter(todos, filter);
+  return (
+    <>
+      <NewTaskForm onAdd={onAdd} />
+      <TaskList
+        todos={visibleItems}
+        onValueChange={onValueChange}
+        onDelete={onDelete}
+        onDone={onDone}
+        onEdit={onEdit}
+      />
+      <Footer
+        todos={todos}
+        filter={filter}
+        onFilterChange={onFilterChange}
+        toDo={toDoCount}
+        onClearCompleted={onClearCompleted}
+      />
+    </>
+  );
 }

@@ -1,59 +1,43 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
 import './task.css';
 
-export default class TaskItem extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      label: props.label,
-      seconds: setInterval(this.onSetTimeDistance, 1000),
-    };
-    this.onSubmit = this.onSubmit.bind(this);
-    this.onSetValue = this.onSetValue.bind(this);
-    this.onSetTimeDistance = this.onSetTimeDistance.bind(this);
-  }
-
-  onSetTimeDistance = () => {
-    const propsValue = this.props;
-    this.setState({
-      seconds: formatDistanceToNow(new Date(propsValue.timeCreate), { addSuffix: true, includeSeconds: true }),
-    });
+export default function TaskItem({ label, timeCreate, id, onValueChange, done, onDone, onEdit, onDelete }) {
+  const [labelCount, setLabelCount] = useState(label);
+  const [seconds, setSeconds] = useState();
+  const setTime = () => {
+    const sec = formatDistanceToNow(new Date(timeCreate), { addSuffix: true, includeSeconds: true });
+    setSeconds(sec);
   };
 
-  onSubmit = (e) => {
+  useEffect(() => {
+    const timer = setInterval(() => setTime(), 1000);
+    return () => clearInterval(timer);
+  });
+
+  const onSubmit = (e) => {
     e.preventDefault();
-    const stateValue = this.state;
-    const propsValue = this.props;
-    propsValue.onValueChange(stateValue.label, propsValue.id);
+    onValueChange(labelCount, id);
   };
 
-  onSetValue = (e) => {
-    this.setState({ label: e.target.value });
-  };
-
-  render() {
-    const propsItem = this.props;
-    const stateValue = this.state;
-    const classNames = propsItem.done ? 'selected through' : 'selected';
-    const classNameCheckbox = propsItem.done ? 'toggle checked' : 'toggle';
-
-    return (
-      <>
-        <div className="view">
-          <input className={classNameCheckbox} type="checkbox" onChange={propsItem.onDone} />
-          <label htmlFor={propsItem.label}>
-            <span className={classNames}>{propsItem.label}</span>
-            <span className="created"> created {stateValue.seconds} </span>
-          </label>
-          <button type="button" aria-label="edit" className="icon icon-edit" onClick={propsItem.onEdit} />
-          <button type="button" aria-label="destroy" className="icon icon-destroy" onClick={propsItem.onDelete} />
-        </div>
-        <form className="header" onSubmit={this.onSubmit}>
-          <input type="text" className="edit" defaultValue={stateValue.label} onChange={this.onSetValue} />
-        </form>
-      </>
-    );
-  }
+  const onSetValue = (e) => setLabelCount(e.target.value);
+  const classNames = done ? 'selected through' : 'selected';
+  const classNameCheckbox = done ? 'toggle checked' : 'toggle';
+  return (
+    <>
+      <div className="view">
+        <input className={classNameCheckbox} type="checkbox" onChange={onDone} />
+        <label htmlFor={label}>
+          <span className={classNames}>{label}</span>
+          <span className="created"> created {seconds} </span>
+        </label>
+        <button type="button" aria-label="edit" className="icon icon-edit" onClick={onEdit} />
+        <button type="button" aria-label="destroy" className="icon icon-destroy" onClick={onDelete} />
+      </div>
+      <form className="header" onSubmit={onSubmit}>
+        <input type="text" className="edit" defaultValue={labelCount} onChange={onSetValue} />
+      </form>
+    </>
+  );
 }
